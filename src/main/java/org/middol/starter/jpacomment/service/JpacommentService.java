@@ -10,7 +10,7 @@ import org.middol.starter.jpacomment.pojo.dto.TableCommentDTO;
 import org.hibernate.SessionFactory;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.persister.entity.EntityPersister;
-import org.hibernate.persister.entity.SingleTableEntityPersister;
+import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.persister.walking.spi.AttributeDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,7 +109,7 @@ public class JpacommentService {
         SessionFactoryImpl sessionFactory = (SessionFactoryImpl) entityManagerFactory.unwrap(SessionFactory.class);
         Map<String, EntityPersister> persisterMap = sessionFactory.getMetamodel().entityPersisters();
         for (Map.Entry<String, EntityPersister> entity : persisterMap.entrySet()) {
-            SingleTableEntityPersister persister = (SingleTableEntityPersister) entity.getValue();
+            AbstractEntityPersister persister = (AbstractEntityPersister) entity.getValue();
             Class targetClass = entity.getValue().getMappedClass();
             TableCommentDTO table = new TableCommentDTO();
             // 表注释
@@ -126,7 +126,7 @@ public class JpacommentService {
     }
 
     @SuppressWarnings("rawtypes")
-    private void getTableInfo(SingleTableEntityPersister persister, TableCommentDTO table, Class targetClass) {
+    private void getTableInfo(AbstractEntityPersister persister, TableCommentDTO table, Class targetClass) {
         table.setColumnCommentDTOList(new ArrayList<>(32));
         table.setName(persister.getTableName());
 
@@ -155,7 +155,7 @@ public class JpacommentService {
     }
 
     @SuppressWarnings("rawtypes")
-    private void getColumnInfo(SingleTableEntityPersister persister, TableCommentDTO table, Class targetClass) {
+    private void getColumnInfo(AbstractEntityPersister persister, TableCommentDTO table, Class targetClass) {
         // 情况比较复杂，必须还要判断是否有父类，存在父类则还要取父类的字段信息，优先取得子类字段为依据
         List<Class> classList = new ArrayList<>(2);
         getAllClass(targetClass, classList);
@@ -183,7 +183,7 @@ public class JpacommentService {
     }
 
     @SuppressWarnings("rawtypes")
-    private void getKeyColumnInfo(SingleTableEntityPersister persister, TableCommentDTO table, Class targetClass) {
+    private void getKeyColumnInfo(AbstractEntityPersister persister, TableCommentDTO table, Class targetClass) {
         String idName = persister.getIdentifierPropertyName();
         String[] idColumns = persister.getIdentifierColumnNames();
         getColumnComment(table, targetClass, idName, idColumns);
