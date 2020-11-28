@@ -1,8 +1,10 @@
 package org.middol.starter.jpacomment.service.impl;
 
-import cn.hutool.core.util.StrUtil;
+import java.util.List;
+
 import org.middol.starter.jpacomment.service.AlterCommentService;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
  * 修改表注释和字段注释
@@ -47,8 +49,13 @@ public class MysqlAlterCommentServiceImpl implements AlterCommentService {
 
     @Override
     public void alterColumnComment(String tableName, String columnName, String columnComment) {
-        String updateColumnComment = jdbcTemplate.queryForObject(getUpdateColumnComment, String.class, schema, tableName, columnName);
-        if (StrUtil.isNotBlank(updateColumnComment)) {
+//        String updateColumnComment = jdbcTemplate.queryForObject(getUpdateColumnComment, String.class, schema, tableName, columnName);
+//        if (StrUtil.isNotBlank(updateColumnComment)) {
+//            jdbcTemplate.update(updateColumnComment, columnComment);
+//        }
+        List<String> updateColumnComments = jdbcTemplate.query(getUpdateColumnComment, new SingleColumnRowMapper<>(String.class), schema, tableName, columnName);
+        if (updateColumnComments != null && updateColumnComments.size() == 1) {
+            String updateColumnComment = updateColumnComments.get(0);
             jdbcTemplate.update(updateColumnComment, columnComment);
         }
     }
