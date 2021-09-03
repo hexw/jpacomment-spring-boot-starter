@@ -1,24 +1,34 @@
 package org.middol.starter.jpacomment.service;
 
-import cn.hutool.core.annotation.AnnotationUtil;
-import cn.hutool.core.util.ClassUtil;
-import cn.hutool.core.util.StrUtil;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceException;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.internal.SessionFactoryImpl;
+import org.hibernate.persister.entity.AbstractEntityPersister;
+import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.persister.walking.spi.AttributeDefinition;
 import org.middol.starter.jpacomment.annotation.ColumnComment;
 import org.middol.starter.jpacomment.annotation.TableComment;
 import org.middol.starter.jpacomment.pojo.dto.ColumnCommentDTO;
 import org.middol.starter.jpacomment.pojo.dto.TableCommentDTO;
-import org.hibernate.SessionFactory;
-import org.hibernate.internal.SessionFactoryImpl;
-import org.hibernate.persister.entity.EntityPersister;
-import org.hibernate.persister.entity.AbstractEntityPersister;
-import org.hibernate.persister.walking.spi.AttributeDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import java.util.*;
+import cn.hutool.core.annotation.AnnotationUtil;
+import cn.hutool.core.util.ClassUtil;
+import cn.hutool.core.util.StrUtil;
 
 /**
  * JPA 字段注释处理类
@@ -105,8 +115,8 @@ public class JpacommentService {
     public Map<String, TableCommentDTO> findAllTableAndColumn() {
         Map<String, TableCommentDTO> tableCommentMap = new HashMap<>(256);
         //通过EntityManager获取factory
-        EntityManagerFactory entityManagerFactory = entityManager.getEntityManagerFactory();
-        SessionFactoryImpl sessionFactory = (SessionFactoryImpl) entityManagerFactory.unwrap(SessionFactory.class);
+        //EntityManagerFactory entityManagerFactory = entityManager.getEntityManagerFactory();
+        SessionFactoryImpl sessionFactory = (SessionFactoryImpl) getSession(entityManager).getSessionFactory();
         Map<String, EntityPersister> persisterMap = sessionFactory.getMetamodel().entityPersisters();
         for (Map.Entry<String, EntityPersister> entity : persisterMap.entrySet()) {
             AbstractEntityPersister persister = (AbstractEntityPersister) entity.getValue();
@@ -203,6 +213,17 @@ public class JpacommentService {
             }
             table.getColumnCommentDTOList().add(column);
         });
+    }
+    
+    private static Session getSession(EntityManager em) {
+        try {
+            return em.unwrap(Session.class );
+        }
+        catch (PersistenceException e) {
+            throw new RuntimeException(
+                    "Trying to use Hibernate Session with a non-Hibernate EntityManager", e
+            );
+        }
     }
 
     public void setEntityManager(EntityManager entityManager) {
